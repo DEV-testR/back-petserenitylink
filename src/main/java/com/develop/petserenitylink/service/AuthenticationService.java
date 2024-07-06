@@ -3,7 +3,9 @@ package com.develop.petserenitylink.service;
 import com.develop.petserenitylink.bean.AuthenticationRequest;
 import com.develop.petserenitylink.bean.AuthenticationResponse;
 import com.develop.petserenitylink.bean.RegisterRequest;
+import com.develop.petserenitylink.bean.Role;
 import com.develop.petserenitylink.bean.TokenType;
+import com.develop.petserenitylink.bean.UserInfo;
 import com.develop.petserenitylink.entity.ASUser;
 import com.develop.petserenitylink.entity.Token;
 import com.develop.petserenitylink.repository.TokenRepository;
@@ -55,6 +57,12 @@ public class AuthenticationService {
         authenticationManager.authenticate(userAuth);
 
         var user = repository.findByEmail(email).orElseThrow();
+        var userInfo = UserInfo.builder()
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole()).build();
+
         var accessToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
@@ -62,7 +70,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .user(user)
+                .user(userInfo)
                 .build();
     }
 
@@ -85,9 +93,8 @@ public class AuthenticationService {
             return;
         }
 
-        String emptyToken = "";
         validUserTokens.forEach(token -> {
-            token.setToken(emptyToken);
+            token.setToken("");
             token.setExpired(true);
             token.setRevoked(true);
         });
