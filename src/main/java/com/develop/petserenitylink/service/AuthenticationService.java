@@ -122,12 +122,13 @@ public class AuthenticationService {
             return;
         }
 
-        var accessToken = jwtService.generateToken(user);
+        var newAccessToken = jwtService.generateToken(user);
+        var newRefreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
-        saveUserToken(user, accessToken);
+        saveUserToken(user, newRefreshToken);
         var authResponse = AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build();
         new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
     }
